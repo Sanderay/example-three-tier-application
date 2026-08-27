@@ -62,9 +62,11 @@ The API is not exposed directly, but you can reach it through the web container 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
-| GET | `/tasks` | List all tasks |
-| POST | `/tasks` | Create a task (`{ "title": "..." }`) |
-| PATCH | `/tasks/:id` | Update a task (`{ "completed": true }` or `{ "title": "..." }`) |
+| GET | `/users` | List all users |
+| POST | `/users` | Create a user (`{ "email": "..." }`) |
+| GET | `/tasks` | List all tasks, optionally filtered by `?assigned_to=USER_ID` |
+| POST | `/tasks` | Create a task (`{ "title": "...", "assigned_to": USER_ID }`) |
+| PATCH | `/tasks/:id` | Update a task (`{ "completed": true, "title": "...", "assigned_to": USER_ID }`) |
 
 ## Project structure
 
