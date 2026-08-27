@@ -10,29 +10,68 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// GET /tasks — list all tasks
-app.get('/tasks', async (_req, res) => {
-  const { rows } = await db.query('SELECT * FROM tasks ORDER BY created_at ASC');
+// GET /users — list all users
+app.get('/users', async (_req, res) => {
+  const { rows } = await db.query('SELECT id, email FROM users ORDER BY email ASC');
+  res.json(rows);
+});
+
+// GET /tasks — list all tasks (optionally filter by assigned_user_id)
+app.get('/tasks', async (req, res) => {
+  const { assigned_user_id } = req.query;
+  
+  let query = `
+    SELECT t.*, u.email as assigned_user_email 
+    FROM tasks t 
+    LEFT JOIN users u ON t.assigned_user_id = u.id
+  `;
+  const params = [];
+  
+  if (assigned_user_id) {
+    query += ' WHERE t.assigned_user_id = $1';
+    params.push(parseInt(assigned_user_id, 10));
+  }
+  
+  query += ' ORDER BY t.created_at ASC';
+  
+  const { rows } = await db.query(query, params);
   res.json(rows);
 });
 
 // POST /tasks — create a task
 app.post('/tasks', async (req, res) => {
-  const { title } = req.body;
+  const { title, assigned_user_id } = req.body;
   if (!title || typeof title !== 'string' || !title.trim()) {
     return res.status(400).json({ error: 'title is required' });
   }
-  const { rows } = await db.query(
-    'INSERT INTO tasks (title) VALUES ($1) RETURNING *',
-    [title.trim()]
+  
+  const params = [title.trim()];
+  let query = 'INSERT INTO tasks (title';
+  let values = 'VALUES ($1';
+  
+  if (assigned_user_id !== undefined && assigned_user_id !== null) {
+    query += ', assigned_user_id';
+    values += ', $2';
+    params.push(parseInt(assigned_user_id, 10));
+  }
+  
+  query += `) ${values}) RETURNING *`;
+  
+  const { rows } = await db.query(query, params);
+  
+  // Fetch the task with user email
+  const { rows: taskWithUser } = await db.query(
+    'SELECT t.*, u.email as assigned_user_email FROM tasks t LEFT JOIN users u ON t.assigned_user_id = u.id WHERE t.id = $1',
+    [rows[0].id]
   );
-  res.status(201).json(rows[0]);
+  
+  res.status(201).json(taskWithUser[0]);
 });
 
-// PATCH /tasks/:id — update a task (complete/uncomplete or rename)
+// PATCH /tasks/:id — update a task (complete/uncomplete, rename, or reassign)
 app.patch('/tasks/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const { completed, title } = req.body;
+  const { completed, title, assigned_user_id } = req.body;
 
   const { rows } = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
   if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -40,12 +79,22 @@ app.patch('/tasks/:id', async (req, res) => {
   const current = rows[0];
   const newCompleted = completed !== undefined ? Boolean(completed) : current.completed;
   const newTitle = title !== undefined ? title.trim() : current.title;
+  const newAssignedUserId = assigned_user_id !== undefined ? 
+    (assigned_user_id === null ? null : parseInt(assigned_user_id, 10)) : 
+    current.assigned_user_id;
 
   const { rows: updated } = await db.query(
-    'UPDATE tasks SET completed = $1, title = $2 WHERE id = $3 RETURNING *',
-    [newCompleted, newTitle, id]
+    'UPDATE tasks SET completed = $1, title = $2, assigned_user_id = $3 WHERE id = $4 RETURNING *',
+    [newCompleted, newTitle, newAssignedUserId, id]
   );
-  res.json(updated[0]);
+  
+  // Fetch the task with user email
+  const { rows: taskWithUser } = await db.query(
+    'SELECT t.*, u.email as assigned_user_email FROM tasks t LEFT JOIN users u ON t.assigned_user_id = u.id WHERE t.id = $1',
+    [updated[0].id]
+  );
+  
+  res.json(taskWithUser[0]);
 });
 
 app.listen(PORT, () => {
