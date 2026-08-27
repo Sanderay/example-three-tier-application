@@ -16,7 +16,7 @@ Browser → Web (Next.js :3000) → API (Express :3001) → PostgreSQL
 | Migrations | node-pg-migrate | `src/db/` |
 | Infrastructure | Terraform (GCP) | `src/infrastructure/` |
 
-The app is a simple task manager (to-do list) that demonstrates how the three tiers communicate.
+The app is a simple task manager (to-do list) that demonstrates how the three tiers communicate. Tasks can be assigned to users, and you can filter the task list by assignee.
 
 ## Running locally with Docker Compose
 
@@ -62,9 +62,10 @@ The API is not exposed directly, but you can reach it through the web container 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
-| GET | `/tasks` | List all tasks |
-| POST | `/tasks` | Create a task (`{ "title": "..." }`) |
-| PATCH | `/tasks/:id` | Update a task (`{ "completed": true }` or `{ "title": "..." }`) |
+| GET | `/users` | List all users |
+| GET | `/tasks` | List all tasks (optionally filter with `?assigned_to=<user_id>`) |
+| POST | `/tasks` | Create a task (`{ "title": "...", "assigned_to": <user_id> }`) |
+| PATCH | `/tasks/:id` | Update a task (`{ "completed": true }`, `{ "title": "..." }`, or `{ "assigned_to": <user_id> }`) |
 
 ## Project structure
 
