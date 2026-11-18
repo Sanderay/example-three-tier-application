@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface WeatherData {
   temperature: number;
@@ -16,20 +17,25 @@ type WeatherState =
   | { status: 'error'; message: string }
   | { status: 'success'; data: WeatherData };
 
+// Check geolocation support outside the component to avoid conditional rendering
+const hasGeolocation = typeof window !== 'undefined' && 'geolocation' in navigator;
+
 export default function WeatherWidget() {
-  const [weatherState, setWeatherState] = useState<WeatherState>({ status: 'loading' });
+  const [weatherState, setWeatherState] = useState<WeatherState>(() => 
+    !hasGeolocation 
+      ? { status: 'error', message: 'Geolocation is not supported by your browser' }
+      : { status: 'loading' }
+  );
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setWeatherState({
-        status: 'error',
-        message: 'Geolocation is not supported by your browser',
-      });
-      return;
-    }
+    if (!hasGeolocation) return;
+
+    let isMounted = true;
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        if (!isMounted) return;
+        
         const { latitude, longitude } = position.coords;
         
         try {
@@ -46,25 +52,31 @@ export default function WeatherWidget() {
           
           const data = await response.json();
           
-          setWeatherState({
-            status: 'success',
-            data: {
-              temperature: Math.round(data.main.temp),
-              description: data.weather[0].description,
-              location: data.name,
-              icon: data.weather[0].icon,
-              humidity: data.main.humidity,
-              windSpeed: data.wind.speed,
-            },
-          });
-        } catch (error) {
-          setWeatherState({
-            status: 'error',
-            message: 'Failed to fetch weather data. Please try again later.',
-          });
+          if (isMounted) {
+            setWeatherState({
+              status: 'success',
+              data: {
+                temperature: Math.round(data.main.temp),
+                description: data.weather[0].description,
+                location: data.name,
+                icon: data.weather[0].icon,
+                humidity: data.main.humidity,
+                windSpeed: data.wind.speed,
+              },
+            });
+          }
+        } catch {
+          if (isMounted) {
+            setWeatherState({
+              status: 'error',
+              message: 'Failed to fetch weather data. Please try again later.',
+            });
+          }
         }
       },
       (error) => {
+        if (!isMounted) return;
+        
         let message = 'Unable to retrieve your location';
         
         switch (error.code) {
@@ -85,6 +97,10 @@ export default function WeatherWidget() {
         });
       }
     );
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (weatherState.status === 'loading') {
@@ -129,10 +145,12 @@ export default function WeatherWidget() {
             {data.location}
           </p>
           <div className="flex items-center gap-2">
-            <img 
+            <Image 
               src={`https://openweathermap.org/img/wn/${data.icon}@2x.png`}
               alt={data.description}
-              className="w-16 h-16"
+              width={64}
+              height={64}
+              unoptimized
             />
             <div>
               <p className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">
