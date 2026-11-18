@@ -150,7 +150,6 @@ export default function WeatherWidget() {
               alt={data.description}
               width={64}
               height={64}
-              unoptimized
             />
             <div>
               <p className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">
