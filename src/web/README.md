@@ -1,5 +1,31 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Features
+
+- **To-Do List**: A simple task management system
+- **Weather Widget**: Displays current weather based on your browser's location
+  - Automatically requests location permission from the browser
+  - Shows temperature, weather conditions, humidity, and wind speed
+  - Gracefully handles denied permissions and errors
+
+## Configuration
+
+### Weather Widget Setup
+
+The weather widget requires an OpenWeatherMap API key:
+
+1. Get a free API key at [https://openweathermap.org/api](https://openweathermap.org/api)
+2. Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Add your API key to `.env.local`:
+   ```
+   NEXT_PUBLIC_OPENWEATHER_API_KEY=your_actual_api_key
+   ```
+
+Note: When the user first visits the page, their browser will ask for permission to access their location. If denied, the widget displays an appropriate error message.
+
 ## Getting Started
 
 First, run the development server:
