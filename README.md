@@ -16,7 +16,30 @@ Browser → Web (Next.js :3000) → API (Express :3001) → PostgreSQL
 | Migrations | node-pg-migrate | `src/db/` |
 | Infrastructure | Terraform (GCP) | `src/infrastructure/` |
 
-The app is a simple task manager (to-do list) that demonstrates how the three tiers communicate.
+The app is a simple task manager (to-do list) with a weather widget that demonstrates how the three tiers communicate and how to integrate browser geolocation features.
+
+## Features
+
+- **Task Management**: Create, view, and complete tasks
+- **Weather Widget**: Displays current weather based on the user's browser location
+  - Automatically requests location permission
+  - Shows temperature, conditions, humidity, and wind speed
+  - Uses OpenWeatherMap API
+
+## Configuration
+
+### Weather Widget
+
+To enable the weather widget, you need an OpenWeatherMap API key:
+
+1. Sign up for a free API key at [https://openweathermap.org/api](https://openweathermap.org/api)
+2. Create a `.env.local` file in `src/web/`:
+   ```bash
+   NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key_here
+   ```
+3. Restart the development server or rebuild the Docker container
+
+Note: The widget will prompt users for location permission when they first visit the page.
 
 ## Running locally with Docker Compose
 
