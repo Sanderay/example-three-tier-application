@@ -6,8 +6,33 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 
+// Work-appropriate song lyrics
+const SONG_LYRICS = [
+  { lyric: "Don't stop believin'", song: "Don't Stop Believin'", artist: "Journey" },
+  { lyric: "I will always love you", song: "I Will Always Love You", artist: "Whitney Houston" },
+  { lyric: "Imagine all the people living life in peace", song: "Imagine", artist: "John Lennon" },
+  { lyric: "Here comes the sun", song: "Here Comes the Sun", artist: "The Beatles" },
+  { lyric: "Good as hell", song: "Good as Hell", artist: "Lizzo" },
+  { lyric: "Walking on sunshine", song: "Walking on Sunshine", artist: "Katrina & The Waves" },
+  { lyric: "Don't give up, 'cause you have friends", song: "Don't Give Up", artist: "Peter Gabriel & Kate Bush" },
+  { lyric: "Every little thing gonna be alright", song: "Three Little Birds", artist: "Bob Marley" },
+  { lyric: "I can see clearly now", song: "I Can See Clearly Now", artist: "Johnny Nash" },
+  { lyric: "You are the sunshine of my life", song: "You Are the Sunshine of My Life", artist: "Stevie Wonder" },
+  { lyric: "Keep your head up", song: "Keep Your Head Up", artist: "Andy Grammer" },
+  { lyric: "Good vibrations", song: "Good Vibrations", artist: "The Beach Boys" },
+  { lyric: "Walking on air", song: "Walking on Air", artist: "Katy Perry" },
+  { lyric: "I'm on top of the world", song: "On Top of the World", artist: "Imagine Dragons" },
+  { lyric: "Don't stop me now, I'm having such a good time", song: "Don't Stop Me Now", artist: "Queen" },
+];
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// GET /lyrics/random — get a random work-appropriate song lyric
+app.get('/lyrics/random', (_req, res) => {
+  const randomIndex = Math.floor(Math.random() * SONG_LYRICS.length);
+  res.json(SONG_LYRICS[randomIndex]);
 });
 
 // GET /tasks — list all tasks
