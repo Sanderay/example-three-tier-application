@@ -11,9 +11,21 @@ export type Task = {
   created_at: string;
 };
 
+export type SongLyric = {
+  lyric: string;
+  song: string;
+  artist: string;
+};
+
 export async function getTasks(): Promise<Task[]> {
   const res = await fetch(`${API_URL}/tasks`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch tasks');
+  return res.json();
+}
+
+export async function getRandomLyric(): Promise<SongLyric> {
+  const res = await fetch(`${API_URL}/lyrics/random`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch lyric');
   return res.json();
 }
 
